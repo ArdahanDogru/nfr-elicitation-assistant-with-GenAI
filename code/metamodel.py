@@ -1203,8 +1203,8 @@ class Contribution(Proposition, metaclass=ContributionMetaClass):
 # LEVEL 3: GROUND INSTANCES
 # ============================================================================
 
-print("  ✓ Level 1 (Metamodel): Metaclasses defined")
-print("  ✓ Level 2 (Model): Classes defined")
+print("  [OK] Level 1 (Metamodel): Metaclasses defined")
+print("  [OK] Level 2 (Model): Classes defined")
 
 # ----------------------------------------------------------------------------
 # Decomposition Method Instances (NO source attribute!)
@@ -1426,7 +1426,7 @@ SubMeterPositioningToSafety = Contribution("SubMeterPositioning", "Safety", Cont
 #learnability
 RapidTaskMasteryToLearnability = Contribution("RapidTaskMastery", "Learnability", ContributionType.MAKE)
 
-print("  ✓ Level 3 (Ground Instances): Instances created")
+print("  [OK] Level 3 (Ground Instances): Instances created")
 print()
 
 # ============================================================================
@@ -1458,7 +1458,7 @@ print("  • 4 DecompositionMethod instances (Traditional CS, Smith, CIA Triad, 
 print("  • 4 ClaimSoftgoal instances (with attribution & justification)")
 print()
 print("KEY DESIGN DECISION:")
-print("  ✓ DecompositionMethod has NO source attribute, ALL attribution via ClaimSoftgoals")
+print("  [OK] DecompositionMethod has NO source attribute, ALL attribution via ClaimSoftgoals")
 print()
 print("="*70)
 print("✅ 3-Level Metamodel V2 Successfully Built!")

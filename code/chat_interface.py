@@ -253,25 +253,28 @@ class ChatInterface(QMainWindow):
     update_ui_signal = Signal(object, str, list)  # (old_msg, text, buttons)
     update_thinking_signal = Signal(object, str)   # (old_msg, text) - no buttons
     add_message_signal = Signal(str, str, list)    # (sender, text, buttons) - add new message
-    
+    loading_status_signal = Signal(str)            # loading status text for title bar
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("NFR Elicitation Assistant - Chat Interface")
         self.setMinimumSize(1400, 900)
-        
+
         # Initialize components
         self.menu_llm = None  # Initialize later
         self.chat_history = []  # List of ChatMessage widgets
         self.components_loaded = False
-        
+        self._model_ready = threading.Event()  # Signals when Ollama model is loaded
+
         # Connect signals to slots
         self.update_ui_signal.connect(self._update_with_buttons)
         self.update_thinking_signal.connect(self._update_thinking_message)
         self.add_message_signal.connect(self._add_message)
-        
+        self.loading_status_signal.connect(self._update_loading_status)
+
         # Setup UI
         self._setup_ui()
-        
+
         # Load components in background (non-blocking)
         self._start_background_loading()
     
@@ -314,7 +317,17 @@ class ChatInterface(QMainWindow):
         title_layout.addWidget(title_label)
         
         title_layout.addStretch()
-        
+
+        # Loading status label
+        self.loading_label = QLabel("Loading AI model...")
+        self.loading_label.setStyleSheet("""
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 10pt;
+            font-style: italic;
+            padding-right: 10px;
+        """)
+        title_layout.addWidget(self.loading_label)
+
         # Info button
         info_btn = QPushButton("ℹ️ Info")
         info_btn.setStyleSheet("""
@@ -507,6 +520,40 @@ class ChatInterface(QMainWindow):
         QTimer.singleShot(100, lambda: self.scroll_area.verticalScrollBar().setValue(
             self.scroll_area.verticalScrollBar().maximum()
         ))
+
+    # User-facing prompt display strings (no metamodel/context references)
+    _PROMPT_DISPLAY = {
+        "define_entity": (
+            "What is {user_input}? State what type of entity it is in requirements engineering. "
+            "Provide a clear and concise explanation of what {user_input} is and why it matters. "
+            "Make it so that even people who have no expert knowledge in the requirements engineering "
+            "field can understand. Provide easy to understand examples."
+        ),
+        "decompose": (
+            "An NFR softgoal can be decomposed into sub-softgoals. A decomposition helps define a "
+            "softgoal, since it provides the components that makes up of the main softgoal. "
+            "Decompose the {user_input} NFR softgoal."
+        ),
+        "show_operationalizations": (
+            "Operationalizations are possible design alternatives for meeting or satisficing "
+            "non-functional requirements in the system. "
+            "List and explain all operationalizations for the {user_input} softgoal."
+        ),
+        "analyze_contributions": (
+            "Every operationalization in the system can simultaneously have negative and positive "
+            "effects on different non-functional requirements. Therefore, using one operationalization "
+            "can help satisfice one NFR while hindering another. "
+            "List each NFR the {user_input} operationalization affects, whether negatively or "
+            "positively; analyze and list {user_input}'s trade-offs between NFRs."
+        ),
+    }
+
+    def _get_prompt_display(self, action_type: str, user_input: str) -> str:
+        """Get a clean user-facing prompt string (no metamodel/context references)."""
+        template = self._PROMPT_DISPLAY.get(action_type)
+        if not template:
+            return user_input
+        return template.format(user_input=user_input)
     
     @Slot(str, str, list)
     def _add_message(self, sender: str, message: str, buttons: List[Dict] = None) -> ChatMessage:
@@ -547,6 +594,9 @@ class ChatInterface(QMainWindow):
         # Process in background thread
         def process():
             try:
+                # Wait for model to be loaded
+                self._model_ready.wait()
+
                 # Call LLM for general chat
                 response = ollama.chat(
                     model="llama3.1:8b",
@@ -588,7 +638,12 @@ class ChatInterface(QMainWindow):
             print(f"Error in _update_thinking_message: {e}")
             import traceback
             traceback.print_exc()
-    
+
+    @Slot(str)
+    def _update_loading_status(self, text: str):
+        """Update the loading status label in the title bar"""
+        self.loading_label.setText(text)
+
     def _on_pipeline_button_click(self, action: str, label: str):
         """Handle pipeline button clicks"""
         print(f"\n🔘 BUTTON CLICKED:")
@@ -612,29 +667,25 @@ class ChatInterface(QMainWindow):
                         print(f"   ✓ Button data: {button_data}")
                         break
         
-        # Add user message with appropriate prompt text
+        # Add user message showing the actual prompt (without context)
         if action == "whats_this":
             entity = button_data.get("entity", "")
-            prompt = f"What is {entity}?"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("define_entity", entity))
             self._process_whats_this(entity)
-            
+
         elif action == "decompose":
             entity = button_data.get("entity", "")
-            prompt = f"Decompose {entity}"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("decompose", entity))
             self._process_decompose(entity)
-            
+
         elif action == "operationalize":
             entity = button_data.get("entity", "")
-            prompt = f"How to achieve {entity}?"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("show_operationalizations", entity))
             self._process_operationalize(entity)
-            
+
         elif action == "side_effects":
             entity = button_data.get("entity", "")
-            prompt = f"What are the side effects of {entity}?"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("analyze_contributions", entity))
             self._process_side_effects(entity)
             
         
@@ -671,42 +722,42 @@ class ChatInterface(QMainWindow):
             if not user_input:
                 return
             
-            # Add user message IMMEDIATELY
-            self._add_message("user", f"What is {user_input}?")
-            
+            # Add user message IMMEDIATELY (show actual prompt)
+            self._add_message("user", self._get_prompt_display("define_entity", user_input))
+
             # Then process
             self._process_whats_this(user_input)
     
     def _process_whats_this(self, user_input: str):
         """Process What's This query - EXACT same logic as menu_windows.py"""
-        # No thinking message here - add messages directly from thread
-        
+        thinking_msg = self._add_message("assistant", "📖 Looking up information...")
+
         def process():
             try:
                 # Ensure MenuLLM is ready
                 menu_llm = self._ensure_menu_llm()
-                
+
                 # EXACT same logic as menu_windows.py
                 from nfr_queries import getEntity, whatIs
-                
+
                 text = user_input
-                
+
                 # Step 1: Fuzzy match
                 matched_name, suggestion = fuzzy_match_entity(text)
                 if not matched_name:
-                    self.add_message_signal.emit("assistant", suggestion, [])
+                    self.update_thinking_signal.emit(thinking_msg, suggestion)
                     return
-                
+
                 # Step 2: Get entity
                 entity = getEntity(matched_name)
                 if not entity:
                     error_msg = f"❌ Could not find entity: {text}\n\nTry: Softgoal, Performance, Security, Indexing, etc."
-                    self.add_message_signal.emit("assistant", error_msg, [])
+                    self.update_thinking_signal.emit(thinking_msg, error_msg)
                     return
-                
+
                 # Step 3: Get comprehensive info
                 info = whatIs(entity, verbose=True)
-                
+
                 # Step 4: Call MenuLLM
                 if menu_llm:
                     llm_response = menu_llm.respond(
@@ -714,26 +765,26 @@ class ChatInterface(QMainWindow):
                         user_input=text,
                         metamodel_context=info
                     )
-                    final_response = suggestion + llm_response
+                    final_response = llm_response
                 else:
-                    final_response = suggestion + info
-                
+                    final_response = info
+
                 # Step 5: Display in chat with buttons
                 formatted_name = format_entity_name(matched_name)
-                
+
                 buttons = [
                     {"label": f"🌳 Decompose {formatted_name}", "action": "decompose", "data": {"entity": matched_name}},
                     {"label": f"🔧 How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
                 ]
-                
-                self.add_message_signal.emit("assistant", final_response, buttons)
-                
+
+                self.update_ui_signal.emit(thinking_msg, final_response, buttons)
+
             except Exception as e:
                 error_msg = f"❌ Error: {str(e)}"
                 import traceback
                 traceback.print_exc()
-                self.add_message_signal.emit("assistant", error_msg, [])
-        
+                self.update_thinking_signal.emit(thinking_msg, error_msg)
+
         thread = threading.Thread(target=process, daemon=True)
         thread.start()
     
@@ -767,8 +818,7 @@ class ChatInterface(QMainWindow):
             if not user_input:
                 return
             
-            prompt = f"Decompose {user_input}"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("decompose", user_input))
             self._process_decompose(user_input)
     
     def _process_decompose(self, user_input: str):
@@ -809,8 +859,8 @@ class ChatInterface(QMainWindow):
                     user_input=format_entity_name(matched_name),
                     metamodel_context=context
                 )
-                full_response = suggestion + llm_response
-                
+                full_response = llm_response
+
                 # Add button for next pipeline step (to operationalize parent)
                 formatted_name = format_entity_name(matched_name)
                 buttons = [
@@ -841,8 +891,7 @@ class ChatInterface(QMainWindow):
             if not user_input:
                 return
             
-            prompt = f"How to achieve {user_input}?"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("show_operationalizations", user_input))
             self._process_operationalize(user_input)
     
     def _process_operationalize(self, user_input: str):
@@ -955,8 +1004,8 @@ class ChatInterface(QMainWindow):
                     user_input=formatted_name,
                     metamodel_context=context
                 )
-                full_response = suggestion + llm_response
-                
+                full_response = llm_response
+
                 # Add buttons for side effects for ALL operationalizations
                 # Remove duplicates from found_ops first
                 unique_ops = []
@@ -1015,8 +1064,7 @@ class ChatInterface(QMainWindow):
             if not user_input:
                 return
             
-            prompt = f"What are the side effects of {user_input}?"
-            self._add_message("user", prompt)
+            self._add_message("user", self._get_prompt_display("analyze_contributions", user_input))
             self._process_side_effects(user_input)
     
     def _process_side_effects(self, user_input: str):
@@ -1078,10 +1126,8 @@ class ChatInterface(QMainWindow):
                     user_input=formatted_name,
                     metamodel_context=context
                 )
-                final_response = suggestion + llm_response
-                
                 # Update UI
-                self.update_thinking_signal.emit(thinking_msg, final_response)
+                self.update_thinking_signal.emit(thinking_msg, llm_response)
                 
             except Exception as e:
                 error_msg = f"❌ Error: {str(e)}"
@@ -1164,8 +1210,7 @@ class ChatInterface(QMainWindow):
                     return
                 
                 # Build response - show complete claim information
-                response = suggestion
-                response += f"📜 Claims/Justifications for {formatted_name}\n\n"
+                response = f"📜 Claims/Justifications for {formatted_name}\n\n"
                 response += f"Found {len(all_claims)} claim(s) supporting its decompositions:\n\n"
                 
                 for i, claim_data in enumerate(all_claims, 1):
@@ -1750,35 +1795,44 @@ Powered by the NFR Framework metamodel and local LLM (Llama 3.1)
         """Start loading components in background without blocking UI"""
         def load():
             try:
+                self.loading_status_signal.emit("Loading AI model...")
+
                 # Initialize MenuLLM
                 self.menu_llm = MenuLLM()
-                
+
                 # Pre-load metamodel
                 import metamodel
-                
+
                 # Pre-load classifier
                 from classifier_v6 import classify_fr_nfr
-                
-                # Warm up LLM (quick test)
+
+                # Warm up LLM (loads model into memory)
                 import ollama
                 ollama.chat(
                     model="llama3.1:8b",
                     messages=[{"role": "user", "content": "hi"}],
                     options={"num_predict": 1}
                 )
-                
+
                 self.components_loaded = True
-                
+                self._model_ready.set()
+                self.loading_status_signal.emit("")
+
             except Exception as e:
                 print(f"Background loading error: {e}")
                 import traceback
                 traceback.print_exc()
-        
+                # Unblock waiters even on failure so the app doesn't hang
+                self._model_ready.set()
+                self.loading_status_signal.emit("")
+
         thread = threading.Thread(target=load, daemon=True)
         thread.start()
-    
+
     def _ensure_menu_llm(self):
-        """Ensure MenuLLM is initialized (lazy loading)"""
+        """Ensure MenuLLM is initialized, waiting for background loading if needed"""
+        if not self._model_ready.is_set():
+            self._model_ready.wait()
         if self.menu_llm is None:
             try:
                 self.menu_llm = MenuLLM()
