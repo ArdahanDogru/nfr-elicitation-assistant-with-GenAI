@@ -1,0 +1,183 @@
+Accessibility:
+
+AC-01: The system shall be fully accessible with a screen reader (for example, VoiceOver for Apple devices and TalkBack for Android devices), which ensures that all buttons and menus have a descriptive name.
+
+AC-02: The system shall be accessible for low vision users by having high contrast mode and the ability to increase font size at least 200% and still be readable.
+
+AC-03: The system shall be accessible for hearing-impaired users by having a strong vibration option, including a ‘vibration only’ alert option.
+
+AC-04: The system shall have the ability to adjust the speed, volume, and pitch of voice instructions. This will enable fast- and slow-learning users.
+
+AC-05: The system shall have the option to change the language. This will enable the blind user to change the language without going through various menus.
+
+AC-06: The system shall have an accessibility hub screen from which the user or caregiver can access all the accessibility features of the system.
+
+AC-07: The system shall have the option to set an accessibility profile for the blind user by the caregiver. The system shall enable the caregiver to set the language of the user’s choice, the intensity of the vibrations, the speed of the voice, etc., and then lock these features by simple authentication.
+
+AC-08: The system shall support the use of external devices by the blind user by effectively working with braille displays such as dynamic braille for the current page and future instruction, along with keyboard shortcuts like start, stop, repeat, etc.
+
+AC-09: The system shall offer feedback on critical events by utilizing multiple senses, such as voice, vibrations, and visual cues.
+
+AC-10: The system shall offer an initial experience that is accessible, such as offering an initial setup experience that explains the basic functionality of the system to the user, utilizing voice cues, along with some text on the display for the caregiver.
+------------------------
+Availability:
+AV-01: The system shall ensure that at least about 80% of the core indoor navigation features are available even when there is no internet available, such as basic route planning within buildings, awareness of the nearest exits, and awareness of the biggest obstacles. This is important so that the blind user can still safely move around even when wifi/cell network is out.
+
+AV-02: The server uptime should be at least about 99.9% per year, which means there should be only a few hours of planned or unplanned downtime. If the server is down too often, users will lose trust in the app.
+
+AV-03: When the blind user starts the navigation, the app should be able to continue providing navigation instructions for at least 5 minutes even when network is suddenly lost, by utilizing cached data.
+
+AV-04: When the app fails to connect to the server/internet, it should not immediately display a scary message saying no service. For at least the first 3 minutes, it should silently continue to utilize the last known data to continue providing guidance to the user, while it continues to attempt to connect to the network in the background.
+
+AV-05: Whenever server and/or cloud service is unavailable, the system shall automatically use the pre-loaded maps and navigation information on the device without the user having to do anything. this mode shall be able to support at least about 10 minutes of safe indoor navigation.
+
+AV-06: When the device successfully connects to a stable network after going offline, the system shall update the maps and navigation information in the background so that any offline navigation will use the newest building information available.
+
+AV-07: The system shall not have hard dependency on server features. Therefore, no more than about 10% of the core navigation functionality shall require real-time server update to function. The system shall not prevent normal function of core navigation features simply because the cloud service is unavailable.
+
+AV-08: The system shall inform the user of any upcoming server maintenance that may impact core navigation features at least 2 hours before the maintenance window. The maintenance shall occur during off-peak hours and shall not occur more than once every 4 weeks.
+
+AV-09: The system shall monitor its own availability and shall keep records of its own app and backend server uptime and time spent in ‘offline fallback’ mode. The system shall then enable the developers to review any issues with its own availability.
+
+AV-10: If the system’s own availability drops below the desired level (for example, if the system fails to connect to the network and/or server for prolonged periods of time), the system shall generate a simple report showing its own availability over the last month.
+-------------------------------------
+Privacy:
+PV-01: The system shall maintain the blind user loc history only on the device of the blind user and not more than 3 months. after this period, the loc history of the blind user shall be deleted automatically so that the long-term tracking of the daily route of the blind user is not possible.
+
+PV-02: The system shall allow the user to delete the loc history of the user from the app at any time with a simple action (e.g., a clear button) so that the user can delete the loc history of the user if the user feels uncomfortable.
+
+PV-03: The system shall anonymize the loc history of the user after 1 month by replacing the direct id of the user with some token or hash so that the analysis of the route of the blind user cannot be traced back to the particular blind user.
+
+PV-04: The system shall never upload the loc history of the user to cloud servers. only the route pattern of the user can be sent after anonymizing the loc history of the user, and this data should be deleted after 1 month.
+
+PV-05: The system shall allow the user to opt-out of the loc history of the user or route information from being shared with the app developers or any third-party analytics service with a clear option provided to the user for opting out of the data sharing.
+
+PV-06: The system shall not use the data of the user for targeted advertising at all. the loc history of the user or route information or ICE contact information or audio information of the user shall be used only for the blind user navigation features of the app.
+
+PV-07: The system shall restrict data processing to what is actually necessary for its primary functions of navigation and safety, and any additional use, like analytics or research, shall need explicit consent from the blind user themselves, like a simple yes/no option in settings.
+
+PV-08: The system shall inform the user in simple language whenever he is using a certain feature that stores sensitive data, like audio recording or detailed location history, so he is aware that additional privcay-sensitive data is being stored.
+
+PV-09: The system shall remove audio recordings of the user, like those of the navigation features, after 30 days of storage by default, but also provide the user with an option to remove them immediately after use, like right after processing, if he wants higher privacy.
+
+PV-10: The system shall store ICE contacts in case of emergency/safety situations only within the device itself, in a special section, and use them exclusively for safety functions, without sharing them with other apps or third parties.
+
+PV-11: The system shall provide the user, like the blind person or their caretaker, with an easy way to see all the main privacy settings in one screen, like “save location history?” “share routes?” “save audio?” “auto-delete audio?” “clear data?”.
+
+PV-12: The system shall provide the user with an easy-to-understand explanation of its privacy policy when he is setting up the application, like what personal data is being collected, like location history, routes, ICE contacts, audio recordings, how long the data is being stored, and how he can change these settings or delete his data later.
+-------------------------------
+Reliability:
+RL-01: The system shall check consistency of key sensors (like position and heading sensors) at least every 10 seconds while it is in active navigation, and correct its internal state if there is more than small allowed range of inconsistency in the sensor readings. This will prevent wrong navigation decisions for the blind user.
+
+RL-02: The system shall not crash more often than 0.05% of the time it is used, which means on average the app should not crash more than 2-3 times a month for normal usage by the regular user. If it crashes more often, the blind user will lose trust in the app.
+
+RL-03: The system shall give correct route guidance for at least 95% of the time it is used for complete trips, where correctness means the user shall arrive within about 3 meters of the correct destination without being misled to a totally wrong place. This is one of the most important reliablility requirements for blind user indoor navgation.
+
+RL-04: The system shall limit the number of wrong direction instructions given to the user, so on average it shall not give more than 2 clearly wrong turn/direction instructions per hour of usage. If it does, the user will get lost.
+
+RL-05: In addition, if the user goes more than 5 meters away from the correct route, the system shall detect this and give the user a warning to re-route within 5 seconds, then compute a new route based on the user’s current position.
+
+RL-06: In case of temporary navigation loss (e.g., bad sensor data, internal error), it should restore normal guidance within 10 seconds in at least 90% of all cases. During this time, it should inform the user that it is recalculating, to avoid that he is following incorrect instructions.
+
+RL-07: It should prevent that there are long times of no guidance at all by ensuring that on average, it is not more than 30 seconds between the time that it can provide valid navigation instructions to the user again.
+
+RL-08: It should detect failure of one or more sensors, like failure of a key orientation/position sensor, in at least 95% of all cases within at most 10 seconds, then enter alternative navigation or warn the user that guidance is degraded.
+
+RL-09: After it detects failure of one or more sensors, it should try to enter alternative navigation within at most 5 seconds.
+
+RL-10: It should update its internal map data at least every 30 days if there is a new version available, to ensure that at least 98% of all map elements it is using (rooms, corridors, stairs, main doors) match the real layout of the building.
+
+RL-11: When app starts, system should perform a simple self-test, making sure that some key sensors react within an acceptable range, and that the active map data version is not older than a certain limit. If a self-test fails, system should display a message to a user indicating that navigation reliability might be compromised.
+
+RL-12: The system should check if its configuration / map / sensor data is corrupted or, at least, outdated at startup, and then restore or reset that data to a clean state, notifying a user that a clean configuration was loaded.
+
+RL-13: The system should keep a log of major reliability issues that happened, including time, floor, and short description, which will help later debugging by devs or support team.
+
+RL-14: The system should monitor how often major reliability issues happen, and if a certain threshold is reached (for example, over 5 major reliability issues within a day on the same floor), system should display a message to a user indicating that app requires maintenance or update, and optionally offer to send logs to support team.
+------------------------
+Safety:
+
+SF-01: The system should detect a person or an obstacle in a walking path at least 5 meters ahead, and should play an audio message "Potential collision ahead" at least 2 seconds before a possible collision, because this is a safety-critical function, because a blind person won't be able to see other ppl or furniture in front of him.
+
+SF-02: The system shall provide a clear warning of the presence of a stairway if the user is within 10 meters of one, including whether the stairway is up or down, and an estimate of the number of steps, as this is important so that blind user dont suddenly step into stairs and fall.
+
+SF-03: The system shall detect if there is a blockage in front of a planned door or exit, for example, because of building or obstacle, and warn the user with audio like "blocked exit ahead" before he/she goes to cross it, and provide an alternative route.
+
+SF-04: The system shall detect if there is a large drop or uneven slope in front of the user, for example, that can cause the user to slip or lose his/her balance, and provide haptic feedback like vibrating and audio warning, because this is safety-critical to prevent blind users from falling on uneven or slanted floors.
+
+SF-05: The system shall detect emergency situations inside the building, for example, fire alarm or security alarm, and provide an audio message like "emergency situation detected, follow evacuation route" within a few seconds.
+
+SF-06: In case there is known danger zone in front of the user, for example, near fire source, blocked corridor, etc., marked in the environment, the system shall provide an audio warning like "danger zone ahead" to the user, and compute an alternative route.
+
+SF-07: The system shall detect if there is a malfunctioning elevator in front of the user, for example, marked in the environment, and provide a warning like "elevator out of order, use alternative route" to prevent the blind user from stepping into it.
+
+SF-08: The system shall include motion sensors, e.g., accelerometer and gyroscope, which will identify a strong impact or fall pattern, and upon identifying a possible fall, it shall immediately alert the user, and if he doesn’t respond within a short time, it shall alert the configured caretaker or emergency contact with his location inside the building.
+
+SF-09: The system shall identify the movement of the user and identify a case of long inactivity while active navigation is happening, e.g., no movement for about 30 minutes while standing at the same spot, and upon identifying this, the app shall ask the user if he is okay, and if there is no answer, it shall alert with his location to the configured caretaker/emergency contact.
+
+SF-10: The system shall identify a case where the user is lost/disoriented, e.g., missing or inconsistent position information for over about 15 minutes while active navigation is happening, and in this case, it shall help guide him towards a known safe location, e.g., lobby, and also give an option to contact a caretaker/campus security.
+
+SF-11: In case of a system failure while active navigation is happening, e.g., failure of sensors, failure of map information, the app shall clearly communicate with the blind user that system guidance is not available at present and shall give him voice commands on how to reach a known exit, and also give an option to alert campus security with his location, which is a safety-critical feature because the blind user should not be misled.
+--------------------------
+Scalability:
+SC-01: The system shall support organization of indoor maps on a campus, building, and zone (such as floor or wing) level, which will allow for easier additions of new buildings or floors without affecting existing map data.
+
+SC-02: The system shall divide map data into small tiles or chunks, only download the tiles for the current campus/building/nearby area, rather than the whole campus map at a time.
+
+SC-03: The system shall maintain a cache of recently used maps and routes on the smartphone with a certain size limit, which will allow the blind user to still navigate his usual buildings even if the backend is busy or slow.
+
+SC-04: The system shall download map and route data in compressed and incremental forms, also known as delta updates, which will allow for easier maintenance of changing data, i.e., if a particular building has changed, it will not require the download of the whole campus map.
+
+SC-05: The server side of the system shall be designed to support horizontal scaling with a load balancer that will allow for spreading requests for routes and maps across many server instances, especially if many users are using the system at the same time within a few minutes.
+
+SC-06: The server side of the system shall be designed to maintain a cache of popular routes and frequently used maps, especially for popular areas such as buildings and floors, which will allow for faster response times during times of heavy usage, e.g., class change, start of semester.
+
+SC-07: The system shall be designed to support rate limiting, which will allow for a certain number of requests from a client or a particular API key, which will prevent a buggy phone or a malicious user from flooding the system with requests, thus denying service to other blind users.
+
+SC-08: The system shall support multiple campuses by keeping each campus map set separated from the others and only load data corresponding to the campus selected by users. Therefore, the total amount of data can increase over time without overloading each phone.
+
+SC-09: The system shall keep old map versions for a short safe period. The system shall also enable users who are already in the middle of a navigation to finish their route on the old map version before switching them to the new map data.
+
+SC-10: The system shall keep an eye on basic load metrics such as the number of requests per minute and average route calculation time. The system shall also enable auto scale rules to increase server instances when traffic goes high.
+---------------------------------------------------------
+Security:
+SR-01: The system shall require a simple login (PIN code or biometric) before showing location history, saved routes, emergency contacts, etc.
+
+SR-02: The system shall auto lock the app and hide info above after at most 2 minuts of no activity during navigation.
+
+SR-03: The system shall store location history, routes, navigation preferences, ICE contacts, and voice notes in encrpyted form on the device using strong encryption.
+
+SR-04: The system shall limit location history to at most 7 days by defualt. The system shall also securely delete location history older than this so an attacker cannot see them.
+
+SR-05: The system shall use HTTPS / TLS for all communication with backend servers. The system shall also verify server certificate to avoid fake server and man in the middle attacks.
+
+SR-06: The system shall restrict unauthorized users from changing navigation settings, emergency contacts, etc., without passing the login.
+
+SR-07: The system shall protect sensor data and voice instructions from tampering by validating data sources and encrpyting any stored voice recordings.
+
+SR-08: The system shall provide a simple remote protection option (for example via caregiver or web page) to logout the user from all sessions and lock the app if the phone is lost or stolen.
+
+SR-09: The system shall support an optional remote wipe of app data so a trusted person can erase sensitive data if the device can not be recovered.
+---------------------------------
+Usability:
+UR-01: The system shall provide clear and short voice navigation insructions (around 15 words or less) and shall split complex steps into smaller messages so the blind user does not get overloaded in noisy hallways.
+
+UR-02: The system shall allow the user to repeat the last voice instruciton at any time during navgiation using one simple action such as a single button or easy gesture.
+
+UR-03: The system shall use a consistent set of simple phrases for movement (for example “turn left”, “turn right”, “go straight”) and shall play a distinct sound or voice message when the destination is reached.
+
+UR-04: The system shall provide haptic feedback (short vibration) together with important voice cues such as start navigation, upcoming turn and destination reached, so the user recieves confirmation even in loud places.
+
+UR-05: The system shall include large touch areas and place the main controls (start, stop, repeat, help) at the same place on the screen to avoid unintentional touch for the blind using the stick or holding the bag.
+
+UR-06: The system shall minimize unintentional input during active navigation, for example, ignoring unintentional touch while the device is detected in the pocket or locking non-essential buttons while the guide is active.
+
+UR-07: The system shall include an easy help/tutorial mode that can be started with one simple action that explains the basic commands and gestures step-by-step for the blind.
+
+UR-08: The system shall include features such as “repeat the last step” and “take me back” that can be safely used if the user gets lost or misses the turn.
+
+UR-09: The system shall be fully accessible using the screen reader feature with clear and descriptive titles for all buttons and menus, and the number of levels should not be more than 2-3 levels deep so that the blind user does not get lost.
+
+UR-10: The system shall include the most used features such as “navigate to the destination” or “repeat the instruction” at the top level of the interface so that the blind user can easily access these features without going deep into the interface.
+
+UR-11: The system shall include status messages such as “on route, 20 meters to the next turn” while the user is navigating the route so that the blind user does not get confused about what is going on.

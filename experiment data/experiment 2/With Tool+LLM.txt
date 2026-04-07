@@ -1,0 +1,145 @@
+1. Performance
+1.1 Time Performance
+TPR-01: The system shall respond to user voice commands within a maximum of 1 second, taking into consideration the blind users walking in corridors.
+TPR-02: The system shall display the next navigation instruction within 2 seconds of the user’s meaningful change in position (for instance, when the user passes in front of a doorway).
+TPR-03: The system shall load the building’s map and route information in less than 3 seconds when connected to standard campus Wi-Fi.
+TPR-04: The system shall, in the presence of high concurrency (server-side), maintain acceptable response times and not degrade significantly; a specific value for acceptable response time is not provided, but the system shall remain usable.
+1.2 Space Performance
+SPR-01: The application shall use no more than 250 MB of memory when the user is navigating.
+SPR-02: The application shall not use high CPU during navigation to avoid overheating the device.
+SPR-03: The system shall use the least network resources during navigation while maintaining the accuracy of the information.
+SPR-04: If the system uses data compression, the data shall be compressed but shall not result in poor performance.
+1.3 Responsiveness Performance
+RPR-01: The application shall remain responsive during navigation, avoiding freezes when the user interacts with the application.
+RPR-02: If the system caches data, such as the map or the route, the data shall be updated sufficiently to avoid becoming outdated (for instance, when the version of the map changes or at a specific interval).
+RPR-03: The system shall log performance issues, e.g., slow computation of routes, slow audio response, to allow analysis of such issues by developers.
+
+2. Security
+2.1 Confidentiality
+SCF-01: The application shall encrypt the user's location history and routes at rest on the device to ensure user privacy in the event of device loss.
+SCF-02: The system shall use HTTPS/TLS to communicate with servers, e.g., synchronize routes, retrieve emergency contacts.
+SCF-03: Only the authenticated user shall be able to view their location history, requiring re-authentication via PIN or biometric authentication upon reopening of the application by someone else.
+SCF-04: The application shall not store raw audio recordings obtained via the device's microphone by default, while still allowing audio input to be used to detect commands, except in cases where the user enables such storage.
+SCF-05: Administrative accounts, in cases where such accounts are created, shall have limited access to user information, e.g., shall not have full access to user location histories, with such roles to be determined.
+SCF-06: The application shall auto-lock after 5 minutes of inactivity to prevent unauthorized use of the application's navigation screens.
+2.2 Integrity
+SIG-01: The system shall log security events, e.g., login, password reset, data export, and retain such logs for a reasonable period of time, e.g., 30 days, to be determined.
+SIG-02: Access control shall be fail-secure, i.e., invalid or failed access attempts shall be denied by default.
+SIG-03: The system shall validate map and routes before applying them, e.g., via checksums, digital signatures, to prevent tampering.
+2.3 Availability (security-related)
+SAV-01: The system shall be able to detect repeated failed login attempts and perform a rate limit.
+SAV-02: Security checks shall not degrade the usability of the application to the point where it is impossible to navigate the application. Performance targets should be set for acceptable usability.
+SAV-03: The system shall be able to detect suspicious patterns and act accordingly.
+
+3. Usability
+3.1 Learnability
+USL-01: The application shall provide audio instructions during application usage in simple terms.
+USL-02: The application shall provide a tutorial at the beginning, which should take around 1-2 minutes.
+USL-03: The application shall provide instructions on how to use the application, i.e., what are the basic commands that the application would use.
+3.2 Efficiency
+USE-01: The application shall allow the user to repeat the last instruction in a single click.
+USE-02: The application shall provide a quick way for the user to pause the application in case the user gets confused.
+USE-03: The application shall provide concise instructions in the form of audio and shall allow the user to ask for further details.
+3.3 Memorability
+USM-01: The application shall keep the same commands and gestures on different screens.
+USM-02: The application shall allow the user to set his or her own shortcuts.
+3.4 Error Prevention
+USP-01: The application shall help the user in preventing errors by providing a warning when the user is about to leave the route.
+USP-02: The application shall not confuse the user with a number of cues. The application shall be manageable.
+USP-03: The application shall use non-speech cues for the user.
+3.5 Satisfaction
+USS-01: The application shall provide the user with the ability to adjust the verbosity of the instruction, i.e., whether to provide a brief instruction or a detailed one, based on user preference.
+USS-02: The application shall provide the user with the ability to adjust the cue style, i.e., vibration level, based on user preference.
+
+4. Accessibility
+4.1 Audio Cues
+AC-AudioCues-01: The system shall provide the user with the next instruction in terms of navigation at least 2 seconds after recognizing a significant change in the user’s position, e.g., passing by a doorway, passing by an intersection.
+AC-AudioCues-02: Turn instructions shall be provided at least 3 seconds before the turn to allow the user to respond while in motion.
+AC-AudioCues-03: Important landmarks or points of decision, e.g., stairs, elevator, intersection of main corridor, shall be announced at least once while the user is within 5 meters of them.
+AC-AudioCues-04: Repetition of the last instruction shall be possible immediately upon user request, e.g., saying “repeat.”
+AC-AudioCues-05: The system shall not overwhelm the user with information by ensuring that there is at least a 2-second gap between non-critical audio announcements, except in safety situations.
+4.2 Voice Navigation
+AC-VoiceNav-01: The system shall respond to basic voice commands, e.g., repeat, pause, resume, help, reroute, where am I, within 1.5 seconds while in active navigation mode.
+AC-VoiceNav-02: A “help” command shall provide a list of voice commands in 20 seconds or less of audio.
+AC-VoiceNav-03: The system shall confirm user actions that involve risk, e.g., end, change destination, SOS, within 1 second, asking the user to confirm by saying “yes” or “no,” with the ability to turn off these confirmations to improve user experience.
+AC-VoiceNav-04: The system shall provide the ability to navigate to a destination without requiring the user to read the screen to perform basic actions.
+AC-VoiceNav-05: Screen reader compatibility shall be provided to assist users in setting up the application, including the ability to adjust settings.
+4.3 Tactile Feedback
+AC-TactileFB-01: The system shall use specific vibrations for key events (approaching turn, off-route, arrival, hazard) to avoid ambiguity.
+AC-TactileFB-02: The user shall be able to adjust the haptics intensity (minimum three levels) and toggle haptics on/off.
+AC-TactileFB-03: Haptics shall not interfere with critical audio; the duration of the vibrations shall be brief (≤1 second).
+AC-TactileFB-04: A haptic feedback shall be provided when audio is not available or is muted to indicate an event occurred.
+AC-TactileFB-05: The haptics patterns shall be consistent within the app; the same event shall always have the same haptics pattern.
+
+5. Availability
+5.1 Claims 
+AVL-01: The system shall maintain an availability of at least 99% of the time, except during scheduled maintenance windows.
+AVL-02: Under normal circumstances, critical features (start navigation, repeat guidance, SOS) shall be accessible within 2 seconds.
+AVL-03: The system shall measure and log system uptime and availability using monitoring tools.
+5.2 Operationalizations 
+AVL-04: The system shall provide redundancy for the backend’s critical services to avoid single-point failure.
+AVL-05: The system shall utilize load balancing within the backend to avoid system downtime due to overload.
+AVL-06: The system shall index data frequently queried to reduce query time and the possibility of system downtime.
+AVL-07: The system shall encrypt data in transit and at rest to avoid system downtime due to data breaches.
+5.3 Tradeoff-aware Constraints 
+AVL-08: In the event of data indexing, the system shall exclude or secure sensitive fields to avoid security side effects.
+AVL-09: If caching is employed to improve availability/performance, refresh/invalidate criteria shall be established to limit stale information.
+AVL-10: If encryption is employed, configurations shall minimize performance impact to avoid response time degradation.
+
+6. Privacy
+6.1 Data Minimization
+PR-DM-01: The app shall collect only the minimum data required to provide the user with the capability to navigate (e.g., location and route context), without collecting any unrelated personal identifiers by default.
+PR-DM-02: User consent shall be obtained before collecting location data. Users shall be allowed to disable location services at any time with an explanation of the impact.
+PR-DM-03: Location data shall be deleted after 24 hours by default. However, the user shall be allowed to enable longer retention.
+6.2 Access Control
+PR-AC-01: User authentication shall be required to access user personal data (e.g., saved places/history).
+PR-AC-02: Role-based access control shall be implemented by the backend to ensure that only authorized roles can access the user data. Administrative access shall be restricted.
+PR-AC-03: Administrative access to user data shall be logged (user ID, action taken, timestamp) and retained for at least 90 days.
+6.3 Anonymization
+PR-AN-01: Analytics events shall be stored without direct identifiers. User identifiers used to collect analytics data shall be pseudonymous and irreversible.
+PR-AN-02: Location data included in analytics shall be generalized (e.g., coarse-grained area) unless the user explicitly enables the sharing of precise data.
+PR-AN-03: If data is shared with third parties, the data shall be anonymized by tokenizing the user identifiers before export.
+6.4 Encryption
+PR-EN-01: Sensitive data at rest shall be encrypted (e.g., saved places, tokens, history stored locally or in a database).
+PR-EN-02: Sensitive data in transit between the application and server shall be encrypted using TLS.
+PR-EN-03: Encryption keys shall be protected (no hard-coded client keys; server keys stored in a secure secrets manager or HSM where applicable).
+
+7. Safety
+7.1 Early Warning
+SAF-EW-01: The system shall detect potential navigation hazards along the planned route (e.g., stairs, escalators, doorways, restricted zones, obstacles).
+SAF-EW-02: An early warning alert shall be provided prior to reaching a detected hazard, with a configurable lead time threshold.
+SAF-EW-03: Safety-critical alerts shall be prioritized over non-critical guidance to prevent missed hazard warnings.
+SAF-EW-04: Alert overload shall be mitigated by rate-limiting repeated warnings for the same hazard within a short interval unless the risk level increases.
+SAF-EW-05: A “safe mode” shall be invoked when hazard risk is high, moderating guidance or stopping guidance until user confirmation to proceed is obtained.
+7.2 Sub-Meter Positioning
+SAF-SMP-01: The system shall estimate the user’s position with sub-meter accuracy (≤ 1 meter error) under normal operating conditions within the defined environment.
+SAF-SMP-02: The system shall continuously compute a localization confidence score to determine whether guidance can be safely presented.
+SAF-SMP-03: If localization confidence falls below a predefined threshold, the system shall warn the user and provide a safe fallback (e.g., pause, re-scan, navigate to a known landmark).
+SAF-SMP-04: The system shall not provide route-by-route instructions when location uncertainty may cause the route instructions to be incorrect.
+SAF-SMP-05: Safety-related localization-related failures shall be logged for further analysis and improvement, subject to data retention.
+
+8. Reliability
+8.1 Uptime / Availability (Reliability)
+RLR-01: The system shall provide at least a 99.9% weekly availability, ignoring any scheduled maintenance, as determined by downtime metrics.
+RLR-02: The system shall provide availability during a partial failure, i.e., the failure to fetch the map shall not affect the availability for the end-user.
+RLR-03: If the navigation service is degraded, the system shall display a clear message describing the degradation within 10 seconds.
+8.2 Fault Tolerance + Recovery
+RLR-04: The system shall recover from an application crash and restore the last route and last known position state within 5 minutes.
+RLR-05: If the positioning service is degraded, the system shall switch to a safe mode with a reduced update rate and a message saying “Uncertain Location.”
+RLR-06: The system shall log critical failures, including the timestamp and the name of the module.
+8.3 Data Preservation
+RLR-07: The system shall preserve the user’s navigation history for at least 6 months or until the deletion of the account.
+RLR-08: The system shall use a durable storage mechanism to prevent data loss in the event of a power failure.
+RLR-09: The system shall preserve the user’s settings after a system update, except in the case where the user wishes to reset the settings.
+
+9. Scalability
+9.1 User / Traffic Scalability
+SCR-01: The system shall be able to handle up to 10,000 concurrent users while providing reasonable navigation request response times, which are established by the team or test plan.
+SCR-02: The system shall use load balancing techniques with multiple servers or instances to avoid overload of the system when there is an increased load.
+SCR-03: The system shall be able to degrade rather than crash when there is an increased load on the system.
+9.2 Map / Data Growth Scalability
+SCR-04: The system shall be able to grow with the increase in building and map data coverage at least 5 times per year without causing a slowdown in query processing.
+SCR-05: The system shall make use of caching techniques to improve the speed of frequently used map tiles and routes to avoid accessing the database frequently when there is an increased load on the system, but must update caches to avoid stale directions.
+SCR-06: The system shall ensure data consistency when there is a distributed system implementation.
+9.3 Security + Performance under Scale
+SCR-07: The system shall ensure the security of the system is not compromised when there is an increased load on the system.
