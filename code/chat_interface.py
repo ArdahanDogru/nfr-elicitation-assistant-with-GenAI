@@ -136,8 +136,8 @@ class ChatMessage(QFrame):
                 # Store button data and connect click
                 btn.setProperty("action", btn_data["action"])
                 btn.setProperty("button_data", btn_data.get("data", {}))
+                #btn.clicked.connect(lambda: self._on_button_click(btn))
                 btn.clicked.connect(lambda checked, b=btn: self._on_button_click(b))
-                
                 self.button_widgets.append(btn)
                 button_layout.addWidget(btn, row, col)
             layout.addLayout(button_layout)
@@ -373,10 +373,12 @@ class ChatInterface(QMainWindow):
             "assistant",
             "Welcome to the NFR Framework Assistant! 👋\n\n"
             "I can help you with:\n"
-            "• Understanding NFRs and their decompositions\n"
-            "• Classifying requirements\n"
-            "• Finding operationalizations\n"
-            "• Exploring side effects\n"
+            "• Understanding NFR softgoals and their sub-softgoals (decompositions)\n"
+            "• Providing sources through claims\n"
+            "• Finding ways to achieve NFRs (operationalizations)\n"
+            "• Exploring side effects of requirements\n"
+            "• Show examples of essential concepts such as types of NFRs, NFR statements, operationalizing softgoals, etc.\n"
+            "• Classifying requirements statements\n"
             "• And much more!\n\n"
             "Click a menu button below to get started, or type your question!"
         )
