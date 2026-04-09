@@ -1374,7 +1374,7 @@ AuthenticationToTimePerformance = Contribution("Authentication", "TimePerformanc
 
 #ops for spacePerf
 IndexingToSpacePerformance = Contribution("Indexing", "SpacePerformance", ContributionType.HURT)
-CachingToSpacePerformance = Contribution("Caching", "SpacePerformance", ContributionType.HELP)
+CachingToSpacePerformance = Contribution("Caching", "SpacePerformance", ContributionType.HURT)
 CompressionToSpacePerformance = Contribution("Compression", "SpacePerformance", ContributionType.HELP)
 
 #ops for confidentiality
