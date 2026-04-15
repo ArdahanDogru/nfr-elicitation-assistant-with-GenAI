@@ -31,7 +31,7 @@ class SoftgoalMetaClass(PropositionMetaClass):
         if hasattr(cls, '_metaclass_attributes'):
             parent_attrs = cls._metaclass_attributes.copy()
         # Create new set with parent + new attributes
-        cls._metaclass_attributes = parent_attrs | {'type', 'topic'}
+        cls._metaclass_attributes = parent_attrs | {'type', 'topic','statement'}
         return cls
 
 
@@ -130,6 +130,7 @@ class Softgoal(Proposition, metaclass=SoftgoalMetaClass):
         super().__init__()
         self.type = None
         self.topic = None
+        self.statement = None
 
 
 class NFRSoftgoal(Softgoal, metaclass=NFRSoftgoalMetaClass):
@@ -170,7 +171,7 @@ class NFRSoftgoalType(SoftgoalType):
 class OperationalizingSoftgoalType(SoftgoalType):
     pass
 
-
+'''
 class ClaimSoftgoalType(SoftgoalType):
     pass
 
@@ -255,7 +256,7 @@ class Nielsen1993BookClaimType(ClaimSoftgoalType):
     """Extended 10 usability heuristics - Book"""
     pass
     topic = "Nielsen, J. (1993). Usability Engineering. Academic Press, Boston, MA"
-
+'''
 
 # NFR Quality Attribute Types
 class PerformanceType(NFRSoftgoalType):
@@ -273,6 +274,11 @@ class SpacePerformanceType(NFRSoftgoalType):
 class ResponsivenessPerformanceType(NFRSoftgoalType):
     pass
 
+class UbiquitousType(NFRSoftgoalType):
+    pass
+
+class OperationalType(NFRSoftgoalType):
+    pass
 
 # Windows Task Manager Performance Types
 class CPUUtilizationType(NFRSoftgoalType):
@@ -748,6 +754,13 @@ class AccuracySoftgoal(NFRSoftgoal):
     pass
     type = AccuracyType
 
+class UbiquitousSoftgoal(NFRSoftgoal):
+    pass
+    type = UbiquitousType
+
+class OperationalSoftgoal(NFRSoftgoal):
+    pass
+    type = OperationalType
 
 class AdaptabilitySoftgoal(NFRSoftgoal):
     pass
@@ -974,7 +987,6 @@ class GoodErrorMessagesSoftgoal(NFRSoftgoal):
 class HelpDocumentationSoftgoal(NFRSoftgoal):
     pass
     type = HelpDocumentationType
-
 
 
 # Operationalizing Technique Softgoal Classes   
@@ -1334,10 +1346,7 @@ claim_manduchi_usability = ClaimSoftgoal(
 # NFR Softgoal Instances (Examples)
 # ----------------------------------------------------------------------------
 
-# Example 1: Specific performance NFR using traditional decomposition
-performanceNFR1 = TimePerformanceSoftgoal()
-performanceNFR1.priority = PropositionPriority.CRITICAL
-performanceNFR1.label = PropositionLabel.SATISFICED
+
 
 # Example 2: Specific security NFR using CIA triad
 confidentialityNFR1 = ConfidentialitySoftgoal()
@@ -1349,7 +1358,53 @@ pgp_implementation = PublicKeyEncryptionType()
 pgp_implementation.type = PublicKeyEncryptionType  # Or a more specific type
 pgp_implementation.is_ground_instance = True  # If you have this flag
 
+# --- Performance Requirements ---
+performanceNFR1 = PerformanceSoftgoal()
+performanceNFR1.statement = "The product shall respond fast to keep up-to-date data in the display."
 
+performanceNFR2 = PerformanceSoftgoal()
+performanceNFR2.statement = "The system shall refresh the display every 60 seconds."
+
+# --- Usability Requirements ---
+usabilityNFR1 = UsabilitySoftgoal()
+usabilityNFR1.statement = "The product shall be intuitive and self-explanatory."
+
+usabilityNFR2 = UsabilitySoftgoal()
+usabilityNFR2.statement = "The system shall be easy to use by the Program Administrators/Nursing Staff Members."
+
+# --- Security Requirements ---
+securityNFR1 = SecuritySoftgoal()
+securityNFR1.statement = "Only registered realtors shall be able to access the system."
+
+securityNFR2 = SecuritySoftgoal()
+securityNFR2.statement = "The system shall be built such that it is as secure as possible from malicious interference."
+
+# --- Operational Requirements ---
+operationalNFR1 = OperationalSoftgoal()
+operationalNFR1.statement = "The product shall adhere to the corporate Architecture guidelines."
+
+# --- Look & Feel Requirements ---
+lookFeelNFR1 = LookFeelSoftgoal()
+lookFeelNFR1.statement = "The product shall comply with corporate User Interface Guidelines."
+
+lookFeelNFR2 = LookFeelSoftgoal()
+lookFeelNFR2.statement = "The appearance of the product shall appear professional."
+
+# --- Portability Requirements ---
+portabilityNFR1 = PortabilitySoftgoal()
+portabilityNFR1.statement = "The system shall operate on Unix and Windows operating systems."
+
+# --- Legal Requirements ---
+legalNFR1 = LegalComplianceSoftgoal()
+legalNFR1.statement = "All actions that modify an existing dispute case must be recorded in the case history."
+
+# --- Availability Requirements ---
+availabilityNFR1 = AvailabilitySoftgoal()
+availabilityNFR1.statement = "The system shall be available to the users 24 hours a day, 7 days a week."
+
+# --- Maintainability Requirements ---
+maintainabilityNFR1 = MaintainabilitySoftgoal()
+maintainabilityNFR1.statement = "The system should be easy enough to maintain that someone else could do it with a manual and a few hours training."
 EarlyWarningToSafety = Contribution("EarlyWarning", "Safety", ContributionType.HELP)
 
 
