@@ -137,7 +137,7 @@ class ChatMessage(QFrame):
                 btn.setProperty("action", btn_data["action"])
                 btn.setProperty("button_data", btn_data.get("data", {}))
                 #btn.clicked.connect(lambda: self._on_button_click(btn))
-                btn.clicked.connect(lambda checked, b=btn: self._on_button_click(b))
+                btn.clicked.connect(lambda checked=False, b=btn: self._on_button_click(b))
                 self.button_widgets.append(btn)
                 button_layout.addWidget(btn, row, col)
             layout.addLayout(button_layout)
@@ -460,7 +460,7 @@ class ChatInterface(QMainWindow):
         menu_layout.setContentsMargins(10, 10, 10, 10)
         
         # Label
-        label = QLabel("🎯 Quick Actions:")
+        label = QLabel("Quick Actions:")
         label.setStyleSheet("font-size: 11pt; font-weight: bold; color: #555;")
         menu_layout.addWidget(label)
         
@@ -469,21 +469,21 @@ class ChatInterface(QMainWindow):
         grid.setSpacing(8)
         
         menu_items = [
-            {"icon": "📖", "label": "What's This?", "callback": self._menu_whats_this},
-            {"icon": "🌳", "label": "Decompose", "callback": self._menu_decompose},
-            {"icon": "🔧", "label": "Operationalize", "callback": self._menu_operationalize},
-            {"icon": "⚡", "label": "Side Effects", "callback": self._menu_side_effects},
-            {"icon": "📜", "label": "Claims", "callback": self._menu_claims},
-            {"icon": "🎓", "label": "Domain Knowledge", "callback": self._menu_domain_knowledge},
-            {"icon": "✅", "label": "Classify", "callback": self._menu_classify},
-            {"icon": "📚", "label": "Browse", "callback": self._menu_browse},
+            {"label": "What's This?", "callback": self._menu_whats_this},
+            {"label": "Decompose", "callback": self._menu_decompose},
+            {"label": "Operationalize", "callback": self._menu_operationalize},
+            {"label": "Side Effects", "callback": self._menu_side_effects},
+            {"label": "Claims", "callback": self._menu_claims},
+            {"label": "Domain Knowledge", "callback": self._menu_domain_knowledge},
+            {"label": "Classify", "callback": self._menu_classify},
+            {"label": "Browse", "callback": self._menu_browse},
         ]
-        
+        #{"icon": "📚", "label": "Browse", "callback": self._menu_browse}
         for i, item in enumerate(menu_items):
             row = i // 4
             col = i % 4
             
-            btn = QPushButton(f"{item['icon']} {item['label']}")
+            btn = QPushButton(f"{item['label']}")
             btn.setMinimumHeight(45)
             btn.setStyleSheet("""
                 QPushButton {
@@ -591,7 +591,7 @@ class ChatInterface(QMainWindow):
         self._add_message("user", user_input)
         
         # Show "thinking" indicator
-        thinking_msg = self._add_message("assistant", "🤔 Thinking...")
+        thinking_msg = self._add_message("assistant", "Thinking...")
         
         # Process in background thread
         def process():
@@ -732,7 +732,7 @@ class ChatInterface(QMainWindow):
     
     def _process_whats_this(self, user_input: str):
         """Process What's This query - EXACT same logic as menu_windows.py"""
-        thinking_msg = self._add_message("assistant", "📖 Looking up information...")
+        thinking_msg = self._add_message("assistant", "Looking up information...")
 
         def process():
             try:
@@ -775,8 +775,8 @@ class ChatInterface(QMainWindow):
                 formatted_name = format_entity_name(matched_name)
 
                 buttons = [
-                    {"label": f"🌳 Decompose {formatted_name}", "action": "decompose", "data": {"entity": matched_name}},
-                    {"label": f"🔧 How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
+                    {"label": f"Decompose {formatted_name}", "action": "decompose", "data": {"entity": matched_name}},
+                    {"label": f"How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
                 ]
 
                 self.update_ui_signal.emit(thinking_msg, final_response, buttons)
@@ -825,7 +825,7 @@ class ChatInterface(QMainWindow):
     
     def _process_decompose(self, user_input: str):
         """Process decomposition query - EXACT same logic as menu_windows.py"""
-        thinking_msg = self._add_message("assistant", "🌳 Analyzing decomposition...")
+        thinking_msg = self._add_message("assistant", "Analyzing decomposition...")
         
         def process():
             try:
@@ -842,7 +842,7 @@ class ChatInterface(QMainWindow):
                 decomps = getDecompositionsFor(entity)
                 
                 if not decomps:
-                    response = f"ℹ️ {format_entity_name(matched_name)} has no decomposition methods defined."
+                    response = f"{format_entity_name(matched_name)} has no decomposition methods defined."
                     self.update_thinking_signal.emit(thinking_msg, response)
                     return
                 
@@ -866,7 +866,7 @@ class ChatInterface(QMainWindow):
                 # Add button for next pipeline step (to operationalize parent)
                 formatted_name = format_entity_name(matched_name)
                 buttons = [
-                    {"label": f"🔧 How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
+                    {"label": f"How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
                 ]
                 
                 # Update UI
@@ -898,7 +898,7 @@ class ChatInterface(QMainWindow):
     
     def _process_operationalize(self, user_input: str):
         """Process operationalization query - EXACT same logic as menu_windows.py OperationalizationWindow"""
-        thinking_msg = self._add_message("assistant", "🔧 Finding techniques...")
+        thinking_msg = self._add_message("assistant", "Finding techniques...")
         
         def process():
             try:
@@ -980,7 +980,7 @@ class ChatInterface(QMainWindow):
                                 found_ops.append(source)  # Fallback to raw name
                 
                 if not contributions:
-                    response = f"ℹ️ No operationalizations found for '{formatted_name}'.\n\n"
+                    response = f"No operationalizations found for '{formatted_name}'.\n\n"
                     response += "Try: Indexing→Performance, Encryption→Security, etc."
                     self.update_thinking_signal.emit(thinking_msg, response)
                     return
@@ -1025,7 +1025,7 @@ class ChatInterface(QMainWindow):
                 buttons = []
                 for i, op in enumerate(unique_ops):  # Use deduplicated list
                     print(f"   Button {i}: op='{op}', type={type(op)}")
-                    btn_label = f"⚡ Side effects of {op}"
+                    btn_label = f"Side effects of {op}"
                     btn_data = {"entity": op}
                     print(f"   Button {i}: label='{btn_label}', data={btn_data}")
                     buttons.append({
@@ -1038,7 +1038,7 @@ class ChatInterface(QMainWindow):
                 
                 # Add claims/justifications button
                 buttons.append({
-                    "label": "📜 View Claims/Justifications",
+                    "label": "View Claims/Justifications",
                     "action": "claims",
                     "data": {"entity": matched_name}
                 })
@@ -1076,7 +1076,7 @@ class ChatInterface(QMainWindow):
         print(f"Input from button: '{user_input}'")
         print(f"{'='*60}")
         
-        thinking_msg = self._add_message("assistant", "⚡ Analyzing contributions...")
+        thinking_msg = self._add_message("assistant", "Analyzing contributions...")
         
         def process():
             try:
@@ -1104,7 +1104,7 @@ class ChatInterface(QMainWindow):
                             contributions.append((obj.target, obj.type.value))
                 
                 if not contributions:
-                    response = f"ℹ️ No contribution information found for '{formatted_name}'."
+                    response = f"No contribution information found for '{formatted_name}'."
                     self.update_thinking_signal.emit(thinking_msg, response)
                     return
                 
@@ -1176,7 +1176,7 @@ class ChatInterface(QMainWindow):
                 decomps = getDecompositionsFor(entity)
                 
                 if not decomps:
-                    response = f"ℹ️ No decompositions (and therefore no claims) found for '{formatted_name}'."
+                    response = f"No decompositions (and therefore no claims) found for '{formatted_name}'."
                     self.update_thinking_signal.emit(thinking_msg, response)
                     return
                 
@@ -1207,12 +1207,12 @@ class ChatInterface(QMainWindow):
                         })
                 
                 if not all_claims:
-                    response = f"ℹ️ No claims found for decompositions of '{formatted_name}'."
+                    response = f"No claims found for decompositions of '{formatted_name}'."
                     self.update_thinking_signal.emit(thinking_msg, response)
                     return
                 
                 # Build response - show complete claim information
-                response = f"📜 Claims/Justifications for {formatted_name}\n\n"
+                response = f"Claims/Justifications for {formatted_name}\n\n"
                 response += f"Found {len(all_claims)} claim(s) supporting its decompositions:\n\n"
                 
                 for i, claim_data in enumerate(all_claims, 1):
@@ -1221,7 +1221,7 @@ class ChatInterface(QMainWindow):
                     response += f"   Citation: {claim_data['argument']}\n"
                     response += "\n"
                 
-                response += "💡 These are scholarly sources supporting the decomposition methods."
+                response += "These are scholarly sources supporting the decomposition methods."
                 
                 # Update UI - no LLM processing
                 self.update_thinking_signal.emit(thinking_msg, response)
@@ -1261,7 +1261,7 @@ class ChatInterface(QMainWindow):
                 menu_llm = self._ensure_menu_llm()
                 
                 # PLACEHOLDER: This will tie claims/justifications with domains
-                response = f"🎓 Domain Knowledge Feature (Placeholder)\n\n"
+                response = f"Domain Knowledge Feature (Placeholder)\n\n"
                 response += f"This feature will connect claims and justifications with their academic/research domains.\n\n"
                 response += f"Query: {user_input}\n\n"
                 response += f"Coming soon: Domain categorization, source attribution, and cross-domain analysis."
@@ -1326,7 +1326,7 @@ class ChatInterface(QMainWindow):
         layout.addWidget(type_label)
         
         # Button 1: FR vs NFR
-        fr_nfr_btn = QPushButton("📊 Classify: FR vs NFR")
+        fr_nfr_btn = QPushButton("Classify: FR vs NFR")
         fr_nfr_btn.setMinimumHeight(50)
         fr_nfr_btn.setStyleSheet("""
             QPushButton {
@@ -1427,13 +1427,13 @@ class ChatInterface(QMainWindow):
                 print(f"Result: {result}\n")
                 
                 if result == 'NFR':
-                    response = "✅ Classification: Non-Functional Requirement (NFR)\n\n"
+                    response = "Classification: Non-Functional Requirement (NFR)\n\n"
                     response += "This requirement describes a quality attribute or constraint on how the system should perform.\n\n"
-                    response += "💡 Use 'Classify: Specific Type' to identify which NFR type (Performance, Security, etc.)"
+                    response += "Use 'Classify: Specific Type' to identify which NFR type (Performance, Security, etc.)"
                 elif result == 'FR':
-                    response = "✅ Classification: Functional Requirement (FR)\n\n"
+                    response = "Classification: Functional Requirement (FR)\n\n"
                     response += "This requirement describes what the system should do - a specific function or behavior.\n\n"
-                    response += "💡 Use 'Classify: Specific Type' to identify which FR type (Process, Display, etc.)"
+                    response += "Use 'Classify: Specific Type' to identify which FR type (Process, Display, etc.)"
                 else:
                     response = f"Classification: {result}"
                 
@@ -1471,26 +1471,26 @@ class ChatInterface(QMainWindow):
                     formatted_name = format_entity_name(result)
                     
                     if warning:
-                        response = f"ℹ️ **NFR Type: {formatted_name}**\n\n"
-                        response += f"**Note:** {warning}\n\n"
+                        response = f"NFR Type: {formatted_name}\n\n"
+                        response += f"Note: {warning}\n\n"
                         response += "The classifier could not find an exact match in the metamodel.\n"
                         response += "The above type is suggested by the LLM but may not be in the knowledge base."
                         
                         self.update_thinking_signal.emit(thinking_msg, response)
                     else:
-                        response = f"✅ **NFR Type: {formatted_name}**\n\n"
+                        response = f"NFR Type: {formatted_name}\n\n"
                         
                         # Get description from metamodel
                         entity = getEntity(result)
                         if entity and hasattr(entity, 'description'):
-                            response += f"**Description:** {entity.description}\n\n"
+                            response += f"Description: {entity.description}\n\n"
                         
                         response += "This is a non-functional requirement focusing on quality attributes."
                         
                         # Add exploration buttons
                         buttons = [
-                            {"label": f"📖 What is {formatted_name}?", "action": "whats_this", "data": {"entity": result}},
-                            {"label": f"🌳 Decompose {formatted_name}", "action": "decompose", "data": {"entity": result}},
+                            {"label": f"What is {formatted_name}?", "action": "whats_this", "data": {"entity": result}},
+                            {"label": f"Decompose {formatted_name}", "action": "decompose", "data": {"entity": result}},
                         ]
                         
                         self.update_ui_signal.emit(thinking_msg, response, buttons)
@@ -1503,11 +1503,11 @@ class ChatInterface(QMainWindow):
                     formatted_name = format_entity_name(result)
                     
                     if warning:
-                        response = f"ℹ️ **FR Type: {formatted_name}**\n\n"
-                        response += f"**Note:** {warning}\n\n"
+                        response = f"FR Type: {formatted_name}\n\n"
+                        response += f"Note: {warning}\n\n"
                         response += "The classifier used LLM fallback for this type."
                     else:
-                        response = f"✅ **FR Type: {formatted_name}**\n\n"
+                        response = f"FR Type: {formatted_name}\n\n"
                         response += "This is a functional requirement describing system behavior."
                     
                     self.update_thinking_signal.emit(thinking_msg, response)
@@ -1522,17 +1522,17 @@ class ChatInterface(QMainWindow):
         thread.start()
     def _menu_browse(self):
         """Handle Browse menu button - Chatbot style with category buttons"""
-        message = "📚 Browse NFR Framework\n\n"
+        message = "Browse examples of esssential concepts of Non Functional Requirements\n\n"
         message += "Choose a category to explore:"
         
         buttons = [
-            {"label": "📋 NFR Types", "action": "browse_category", "data": {"category": "NFR Types"}},
-            {"label": "🔧 Operationalizing Softgoals", "action": "browse_category", "data": {"category": "Operationalizing Softgoals"}},
-            {"label": "⚙️ Functional Requirement Types", "action": "browse_category", "data": {"category": "Functional Requirement Types"}},
-            {"label": "📜 Claim Softgoals", "action": "browse_category", "data": {"category": "Claim Softgoals"}},
-            {"label": "🌳 Decomposition Methods", "action": "browse_category", "data": {"category": "Decomposition Methods"}},
-            {"label": "🔗 Contribution Links", "action": "browse_category", "data": {"category": "Contribution Links"}},
-            {"label": "💭 Correlation Links", "action": "browse_category", "data": {"category": "Correlation Links"}},
+            {"label": "NFR Types", "action": "browse_category", "data": {"category": "NFR Types"}},
+            {"label": "Operationalizing Softgoals", "action": "browse_category", "data": {"category": "Operationalizing Softgoals"}},
+            #{"label": "⚙️ Functional Requirement Types", "action": "browse_category", "data": {"category": "Functional Requirement Types"}},
+            {"label": "Claim Softgoals", "action": "browse_category", "data": {"category": "Claim Softgoals"}},
+            {"label": "Decomposition Methods", "action": "browse_category", "data": {"category": "Decomposition Methods"}},
+            {"label": "Contribution Links", "action": "browse_category", "data": {"category": "Contribution Links"}},
+            {"label": "Correlation Links", "action": "browse_category", "data": {"category": "Correlation Links"}},
         ]
         
         self._add_message("assistant", message, buttons)
@@ -1584,12 +1584,12 @@ class ChatInterface(QMainWindow):
                                                     try:
                                                         # Check if instance of this softgoal or its children
                                                         if isinstance(inst_obj, softgoal_class):
-                                                            instance_children.append(("instance", inst_name))
+                                                            instance_children.append(("instance", inst_obj.statement))
                                                         # Also check children softgoals
                                                         try:
                                                             for child_class in getChildren(softgoal_class):
                                                                 if isinstance(inst_obj, child_class):
-                                                                    instance_children.append(("instance", inst_name))
+                                                                    instance_children.append(("instance", inst_obj.statement))
                                                                     break
                                                         except:
                                                             pass
@@ -1642,7 +1642,34 @@ class ChatInterface(QMainWindow):
                                         examples.append((name, obj, type_children, instance_children))
                             except TypeError:
                                 pass
+                elif category == "Claim Softgoals":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'ClaimSoftgoal'):
+                            if isinstance(obj, metamodel.ClaimSoftgoal):
+                                examples.append((obj.argument, obj.supports, [], []))
                 
+                elif category == "Decomposition Methods":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'NFRDecompositionMethod'):
+                            if isinstance(obj, metamodel.NFRDecompositionMethod):
+                                examples.append((name, obj, [], []))
+                        elif hasattr(metamodel, 'OperationalizationDecompositionMethod'):
+                            if isinstance(obj, metamodel.OperationalizationDecompositionMethod):
+                                examples.append((name, obj, [], []))
+                
+                elif category == "Contribution Links":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'Contribution'):
+                            if isinstance(obj, metamodel.Contribution):
+                                info = f"{obj.source} → {obj.target} ({obj.type.value})"
+                                examples.append((name, obj, [(info, "")], []))
+                
+                elif category == "Correlation Links":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'Correlation'):
+                            if isinstance(obj, metamodel.Correlation):
+                                examples.append((name, obj, [], []))
+                '''
                 elif category == "Functional Requirement Types":
                     for name, obj in inspect.getmembers(metamodel):
                         if inspect.isclass(obj) and hasattr(metamodel, 'FunctionalRequirementType'):
@@ -1670,41 +1697,15 @@ class ChatInterface(QMainWindow):
                                                 if not inspect.isclass(inst_obj) and not inspect.isfunction(inst_obj):
                                                     try:
                                                         if isinstance(inst_obj, softgoal_class):
-                                                            instance_children.append(("instance", inst_name))
+                                                            instance_children.append(("instance", inst_obj.statement))
                                                     except:
                                                         pass
                                         
                                         examples.append((name, obj, type_children, instance_children))
                             except TypeError:
                                 pass
+                '''
                 
-                elif category == "Claim Softgoals":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'ClaimSoftgoal'):
-                            if isinstance(obj, metamodel.ClaimSoftgoal):
-                                examples.append((name, obj, [], []))
-                
-                elif category == "Decomposition Methods":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'NFRDecompositionMethod'):
-                            if isinstance(obj, metamodel.NFRDecompositionMethod):
-                                examples.append((name, obj, [], []))
-                        elif hasattr(metamodel, 'OperationalizationDecompositionMethod'):
-                            if isinstance(obj, metamodel.OperationalizationDecompositionMethod):
-                                examples.append((name, obj, [], []))
-                
-                elif category == "Contribution Links":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'Contribution'):
-                            if isinstance(obj, metamodel.Contribution):
-                                info = f"{obj.source} → {obj.target} ({obj.type.value})"
-                                examples.append((name, obj, [(info, "")], []))
-                
-                elif category == "Correlation Links":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'Correlation'):
-                            if isinstance(obj, metamodel.Correlation):
-                                examples.append((name, obj, [], []))
                 
                 # Format output with BOTH type hierarchy and ground instances
                 if examples:
@@ -1721,8 +1722,13 @@ class ChatInterface(QMainWindow):
                             type_children = []
                             instance_children = []
                         
-                        display_name = format_entity_name(name) if 'Type' in name else name
-                        response += f"{i}. **{display_name}**\n"
+                        if category == "Claim Softgoals":
+                            display_name = format_entity_name(name) if 'Type' in name else name
+                            response += f"{i}. {display_name}: {obj}\n"
+                        else: 
+                            display_name = format_entity_name(name) if 'Type' in name else name
+                            response += f"{i}. {display_name}\n"
+                        
                         
                         # Show type hierarchy
                         if type_children:
@@ -1735,16 +1741,16 @@ class ChatInterface(QMainWindow):
                         
                         # Show ground instances
                         if instance_children:
-                            response += "   Instances:\n"
+                            response += "   Examples:\n"
                             for kind, inst_name in instance_children:
-                                response += f"     ⚡ {inst_name}\n"
+                                response += f"  {inst_name}\n"
                         
                         response += "\n"
                     
                     response += f"💡 Total: {len(examples)} items"
                     
                     # Add helpful hint instead of limited buttons
-                    response += "\n💬 **Tip:** Type any item name above to explore it in detail!"
+                    response += "\n💬 Tip: Type any item name above to explore it in detail!"
                     buttons = []
                 else:
                     response = f"ℹ️ No items found for {category}"
