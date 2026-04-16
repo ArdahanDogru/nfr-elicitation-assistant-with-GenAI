@@ -137,9 +137,6 @@ class ChatMessage(QFrame):
                 btn.setProperty("action", btn_data["action"])
                 btn.setProperty("button_data", btn_data.get("data", {}))
                 btn.clicked.connect(lambda checked=False, b=btn: self._on_button_click(b))
-                
-                #btn.clicked.connect(lambda: self._on_button_click(btn))
-                btn.clicked.connect(lambda checked=False, b=btn: self._on_button_click(b))
                 self.button_widgets.append(btn)
                 button_layout.addWidget(btn, row, col)
             layout.addLayout(button_layout)
@@ -1743,13 +1740,15 @@ class ChatInterface(QMainWindow):
                                 '''
                 # Format output with BOTH type hierarchy and ground instances
                 if examples:
-                    response = f"📚 {category.upper()}\n\nFound {len(examples)} item(s). Click any item to explore:"
+                    response = f"📚 {category.upper()}\n\n"
 
-                    buttons = []
-                    for i,item in examples:
-                        if len(item) == 4:
+                    response += f"Found {len(examples)} item(s):\n\n"
+
+                    
+                    for i, item in enumerate(examples, 1):
+                        if len(item) == 4:  # Has type_children and instance_children
                             name, obj, type_children, instance_children = item
-                        else:
+                        else:  # Old format
                             name, obj = item[0], item[1]
                             type_children = []
                             instance_children = []
@@ -1785,24 +1784,21 @@ class ChatInterface(QMainWindow):
                     response += "\n💬 Tip: Type any item name above to explore it in detail!"
                     buttons = []
                 else:
-                    # Non-class entity (instance / link)
-                    response += f"Value: {entity}\n\n"
-
-                # Follow-up buttons
-                buttons = [
-                    {"label": f"📖 What is {display}?", "action": "whats_this", "data": {"entity": entity_name}},
-                    {"label": f"🌳 Decompose {display}", "action": "decompose", "data": {"entity": entity_name}},
-                    {"label": f"🔧 How to achieve {display}?", "action": "operationalize", "data": {"entity": entity_name}},
-                    {"label": f"⚡ Side effects of {display}", "action": "side_effects", "data": {"entity": entity_name}},
-                ]
-
-                self.update_ui_signal.emit(thinking_msg, response, buttons)
-
+                    response = f"ℹ️ No items found for {category}"
+                    buttons = []
+                
+                # Update UI
+                if buttons:
+                    self.update_ui_signal.emit(thinking_msg, response, buttons)
+                else:
+                    self.update_thinking_signal.emit(thinking_msg, response)
+                
             except Exception as e:
+                error_msg = f"❌ Error: {str(e)}"
                 import traceback
                 traceback.print_exc()
-                self.update_thinking_signal.emit(thinking_msg, f"❌ Error: {e}")
-
+                self.update_thinking_signal.emit(thinking_msg, error_msg)
+        
         thread = threading.Thread(target=process, daemon=True)
         thread.start()
 
