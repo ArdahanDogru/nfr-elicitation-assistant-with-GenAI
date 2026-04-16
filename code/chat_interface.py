@@ -136,6 +136,8 @@ class ChatMessage(QFrame):
                 # Store button data and connect click
                 btn.setProperty("action", btn_data["action"])
                 btn.setProperty("button_data", btn_data.get("data", {}))
+                btn.clicked.connect(lambda checked=False, b=btn: self._on_button_click(b))
+                
                 #btn.clicked.connect(lambda: self._on_button_click(btn))
                 btn.clicked.connect(lambda checked=False, b=btn: self._on_button_click(b))
                 self.button_widgets.append(btn)
@@ -702,7 +704,13 @@ class ChatInterface(QMainWindow):
             prompt = f"Browse: {category}"
             self._add_message("user", prompt)
             self._process_browse_category(category)
-        
+
+        elif action == "browse_item":
+            entity = button_data.get("entity", "")
+            display = format_entity_name(entity) if 'Type' in entity else entity
+            self._add_message("user", f"Show details for {display}")
+            self._process_browse_item(entity)
+
         else:
             # Generic handling
             self._add_message("user", f"[{label}]")
@@ -1669,7 +1677,35 @@ class ChatInterface(QMainWindow):
                         if hasattr(metamodel, 'Correlation'):
                             if isinstance(obj, metamodel.Correlation):
                                 examples.append((name, obj, [], []))
-                '''
+                
+                elif category == "Claim Softgoals":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'ClaimSoftgoal'):
+                            if isinstance(obj, metamodel.ClaimSoftgoal):
+                                examples.append((name, obj, [], []))
+                
+                elif category == "Decomposition Methods":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'NFRDecompositionMethod'):
+                            if isinstance(obj, metamodel.NFRDecompositionMethod):
+                                examples.append((name, obj, [], []))
+                        elif hasattr(metamodel, 'OperationalizationDecompositionMethod'):
+                            if isinstance(obj, metamodel.OperationalizationDecompositionMethod):
+                                examples.append((name, obj, [], []))
+                
+                elif category == "Contribution Links":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'Contribution'):
+                            if isinstance(obj, metamodel.Contribution):
+                                info = f"{obj.source} → {obj.target} ({obj.type.value})"
+                                examples.append((name, obj, [(info, "")], []))
+                
+                elif category == "Correlation Links":
+                    for name, obj in inspect.getmembers(metamodel):
+                        if hasattr(metamodel, 'Correlation'):
+                            if isinstance(obj, metamodel.Correlation):
+                                examples.append((name, obj, [], []))
+                                '''
                 elif category == "Functional Requirement Types":
                     for name, obj in inspect.getmembers(metamodel):
                         if inspect.isclass(obj) and hasattr(metamodel, 'FunctionalRequirementType'):
@@ -1704,20 +1740,16 @@ class ChatInterface(QMainWindow):
                                         examples.append((name, obj, type_children, instance_children))
                             except TypeError:
                                 pass
-                '''
-                
-                
+                                '''
                 # Format output with BOTH type hierarchy and ground instances
                 if examples:
-                    response = f"📚 {category.upper()}\n\n"
+                    response = f"📚 {category.upper()}\n\nFound {len(examples)} item(s). Click any item to explore:"
 
-                    response += f"Found {len(examples)} item(s):\n\n"
-
-                    
-                    for i, item in enumerate(examples, 1):
-                        if len(item) == 4:  # Has type_children and instance_children
+                    buttons = []
+                    for i,item in examples:
+                        if len(item) == 4:
                             name, obj, type_children, instance_children = item
-                        else:  # Old format
+                        else:
                             name, obj = item[0], item[1]
                             type_children = []
                             instance_children = []
@@ -1753,23 +1785,27 @@ class ChatInterface(QMainWindow):
                     response += "\n💬 Tip: Type any item name above to explore it in detail!"
                     buttons = []
                 else:
-                    response = f"ℹ️ No items found for {category}"
-                    buttons = []
-                
-                # Update UI
-                if buttons:
-                    self.update_ui_signal.emit(thinking_msg, response, buttons)
-                else:
-                    self.update_thinking_signal.emit(thinking_msg, response)
-                
+                    # Non-class entity (instance / link)
+                    response += f"Value: {entity}\n\n"
+
+                # Follow-up buttons
+                buttons = [
+                    {"label": f"📖 What is {display}?", "action": "whats_this", "data": {"entity": entity_name}},
+                    {"label": f"🌳 Decompose {display}", "action": "decompose", "data": {"entity": entity_name}},
+                    {"label": f"🔧 How to achieve {display}?", "action": "operationalize", "data": {"entity": entity_name}},
+                    {"label": f"⚡ Side effects of {display}", "action": "side_effects", "data": {"entity": entity_name}},
+                ]
+
+                self.update_ui_signal.emit(thinking_msg, response, buttons)
+
             except Exception as e:
-                error_msg = f"❌ Error: {str(e)}"
                 import traceback
                 traceback.print_exc()
-                self.update_thinking_signal.emit(thinking_msg, error_msg)
-        
+                self.update_thinking_signal.emit(thinking_msg, f"❌ Error: {e}")
+
         thread = threading.Thread(target=process, daemon=True)
         thread.start()
+
     def _show_info(self):
         """Show information about the tool"""
         info_text = """ℹ️ **NFR Framework Assistant**
@@ -1854,6 +1890,15 @@ Powered by the NFR Framework metamodel and local LLM (Llama 3.1)
 # MAIN ENTRY POINT
 # ============================================================================
 
+def check_ollama_running():
+    """Check if Ollama is reachable and warn the user if not."""
+    try:
+        ollama.list()
+        return True
+    except Exception:
+        return False
+
+
 def main():
     """Launch the chat interface"""
     print("="*70)
@@ -1862,17 +1907,34 @@ def main():
     print("Version: 3.0 (Unified Chat - FIXED)")
     print("="*70)
     print()
-    
+
     app = QApplication(sys.argv)
-    
+
     # Set application font
     app_font = QFont("Segoe UI", 10)
     app.setFont(app_font)
-    
+
+    # Check if Ollama is running before opening the main window
+    if not check_ollama_running():
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle("Ollama Not Detected")
+        msg.setText("Could not connect to Ollama.")
+        msg.setInformativeText(
+            "This application requires Ollama to be running.\n\n"
+            "Please start Ollama (run 'ollama serve' in a terminal) "
+            "and try again.\n\n"
+            "Press OK to launch anyway, or Cancel to exit."
+        )
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setDefaultButton(QMessageBox.Cancel)
+        if msg.exec() == QMessageBox.Cancel:
+            sys.exit(1)
+
     # Create and show chat interface
     chat = ChatInterface()
     chat.show()
-    
+
     sys.exit(app.exec())
 
 
