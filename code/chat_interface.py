@@ -1738,59 +1738,27 @@ class ChatInterface(QMainWindow):
                             except TypeError:
                                 pass
                                 '''
-                # Format output with BOTH type hierarchy and ground instances
+                # Format output as buttons
                 if examples:
-                    response = f"📚 {category.upper()}\n\n"
+                    response = f"📚 {category.upper()}\n\nFound {len(examples)} item(s). Click any item to explore:"
 
-                    response += f"Found {len(examples)} item(s):\n\n"
-
-                    
-                    for i, item in enumerate(examples, 1):
-                        if len(item) == 4:  # Has type_children and instance_children
+                    buttons = []
+                    for item in examples:
+                        if len(item) == 4:
                             name, obj, type_children, instance_children = item
-                        else:  # Old format
+                        else:
                             name, obj = item[0], item[1]
-                            type_children = []
-                            instance_children = []
-                        
-                        if category == "Claim Softgoals":
-                            display_name = format_entity_name(name) if 'Type' in name else name
-                            response += f"{i}. {display_name}: {obj}\n"
-                        else: 
-                            display_name = format_entity_name(name) if 'Type' in name else name
-                            response += f"{i}. {display_name}\n"
-                        
-                        
-                        # Show type hierarchy
-                        if type_children:
-                            response += "   Types:\n"
-                            for kind, child_name in type_children[:5]:
-                                child_display = format_entity_name(child_name)
-                                response += f"     ↳ {child_display}\n"
-                            if len(type_children) > 5:
-                                response += f"     ↳ ... and {len(type_children) - 5} more\n"
-                        
-                        # Show ground instances
-                        if instance_children:
-                            response += "   Examples:\n"
-                            for kind, inst_name in instance_children:
-                                response += f"  {inst_name}\n"
-                        
-                        response += "\n"
-                    
-                    response += f"💡 Total: {len(examples)} items"
-                    
-                    # Add helpful hint instead of limited buttons
-                    response += "\n💬 Tip: Type any item name above to explore it in detail!"
-                    buttons = []
-                else:
-                    response = f"ℹ️ No items found for {category}"
-                    buttons = []
-                
-                # Update UI
-                if buttons:
+
+                        display_name = format_entity_name(name) if 'Type' in name else name
+                        buttons.append({
+                            "label": display_name,
+                            "action": "browse_item",
+                            "data": {"entity": name, "category": category},
+                        })
+
                     self.update_ui_signal.emit(thinking_msg, response, buttons)
                 else:
+                    response = f"ℹ️ No items found for {category}"
                     self.update_thinking_signal.emit(thinking_msg, response)
                 
             except Exception as e:
@@ -1799,6 +1767,120 @@ class ChatInterface(QMainWindow):
                 traceback.print_exc()
                 self.update_thinking_signal.emit(thinking_msg, error_msg)
         
+        thread = threading.Thread(target=process, daemon=True)
+        thread.start()
+
+    def _process_browse_item(self, entity_name: str):
+        """Show detailed info and metamodel instances for a browse item."""
+        display = format_entity_name(entity_name) if 'Type' in entity_name else entity_name
+        thinking_msg = self._add_message("assistant", f"Loading details for {display}...")
+
+        def process():
+            try:
+                import inspect as _inspect
+
+                entity = getattr(metamodel, entity_name, None)
+                if entity is None:
+                    self.update_thinking_signal.emit(
+                        thinking_msg, f"Could not find {entity_name} in metamodel."
+                    )
+                    return
+
+                response = f"{display}\n\n"
+
+                # --- Classification ---
+                if _inspect.isclass(entity):
+                    for base_name, label in [
+                        ('NFRSoftgoalType', 'NFR (Non-Functional Requirement)'),
+                        ('OperationalizingSoftgoalType', 'Operationalizing Softgoal'),
+                        ('FunctionalRequirementType', 'Functional Requirement'),
+                    ]:
+                        base = getattr(metamodel, base_name, None)
+                        if base and issubclass(entity, base):
+                            response += f"Type: {label}\n\n"
+                            break
+
+                    # --- Sub-types ---
+                    try:
+                        children = getChildren(entity)
+                        if children:
+                            child_names = [format_entity_name(getEntityName(c)) for c in children]
+                            response += f"Sub-types ({len(children)}):\n"
+                            for cn in child_names:
+                                response += f"  ↳ {cn}\n"
+                            response += "\n"
+                    except Exception:
+                        pass
+
+                    # --- Ground instances ---
+                    softgoal_name = entity_name.replace('Type', 'Softgoal')
+                    softgoal_class = getattr(metamodel, softgoal_name, None)
+                    search_classes = [softgoal_class] if softgoal_class else []
+                    if softgoal_class:
+                        try:
+                            search_classes.extend(getChildren(softgoal_class))
+                        except Exception:
+                            pass
+
+                    instances = []
+                    if search_classes:
+                        for inst_name, inst_obj in _inspect.getmembers(metamodel):
+                            if _inspect.isclass(inst_obj) or _inspect.isfunction(inst_obj):
+                                continue
+                            for cls in search_classes:
+                                try:
+                                    if isinstance(inst_obj, cls):
+                                        instances.append(inst_name)
+                                        break
+                                except Exception:
+                                    pass
+
+                    if instances:
+                        response += f"Instances in metamodel ({len(instances)}):\n"
+                        for inst in instances:
+                            response += f"  {inst}\n"
+                        response += "\n"
+
+                    # --- Decompositions ---
+                    try:
+                        decomps = getDecompositionsFor(entity)
+                        if decomps:
+                            response += f"Decompositions ({len(decomps)}):\n"
+                            for d in decomps:
+                                response += f"  {getEntityName(d)}\n"
+                            response += "\n"
+                    except Exception:
+                        pass
+
+                    # --- Claims ---
+                    try:
+                        claims = getClaimsFor(entity)
+                        if claims:
+                            response += f"Claims ({len(claims)}):\n"
+                            for c in claims:
+                                response += f"  {getEntityName(c)}\n"
+                            response += "\n"
+                    except Exception:
+                        pass
+                else:
+                    # Non-class entity (instance / link)
+                    response += f"Value: {entity}\n\n"
+
+                # Follow-up buttons
+                buttons = [
+                    {"label": f"What is {display}?", "action": "whats_this", "data": {"entity": entity_name}},
+                    {"label": f"Decompose {display}", "action": "decompose", "data": {"entity": entity_name}},
+                    {"label": f"How to achieve {display}?", "action": "operationalize", "data": {"entity": entity_name}},
+                    {"label": f"Side effects of {display}", "action": "side_effects", "data": {"entity": entity_name}},
+                ]
+
+                self.update_ui_signal.emit(thinking_msg, response, buttons)
+
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.update_thinking_signal.emit(thinking_msg, f"Error: {e}")
+
         thread = threading.Thread(target=process, daemon=True)
         thread.start()
 

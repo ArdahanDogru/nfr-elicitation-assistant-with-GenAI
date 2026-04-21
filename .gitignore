@@ -29,6 +29,12 @@ test_outputs/
 backups/
 *_backup_*.py
 
+# Claude Code
+.claude/
+
+# Images
+*.png
+
 # Sensitive
 config.ini
 secrets.json

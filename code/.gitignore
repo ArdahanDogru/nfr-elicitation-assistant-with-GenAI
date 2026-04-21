@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+dist/
+__pycache__/
+
+# PyInstaller spec
+*.spec
+
+# Claude Code
+.claude/
+
+# Images
+*.png
+
+# Environment / secrets
+.env
