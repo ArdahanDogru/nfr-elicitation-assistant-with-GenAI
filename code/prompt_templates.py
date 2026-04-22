@@ -25,7 +25,7 @@ Be concise but cover all information given to you. Do not change or add any offs
 
     "decompose": """
 An NFR softgoal can be decomposed into sub-softgoals. A decomposition helps define a softgoal, since it provides the components that makes up of the main softgoal.
-Decompose the {user_input} NFR softgoal given the decomposition information:{context}""",
+Decompose the {user_input} NFR softgoal given the decomposition information:{context}. If there's no information, come up with the most plausible decomposition""",
 
     
     "show_examples": """
@@ -38,7 +38,7 @@ Provide a concise explanation covering all the information given but not in a wa
 
     "show_operationalizations": """
 Operationalizations are possible design alternatives for meeting or satisficing non-functional requirements in the system. Here is the operationalization information from the metamodel: {context}.
-List and explain all operationalizations for the {user_input} softgoal.
+List and explain all operationalizations for the {user_input} softgoal. If there are no information from the metamodel, come up with possible operationalizations
 
 """,
 

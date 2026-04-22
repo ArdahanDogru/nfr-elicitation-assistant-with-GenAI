@@ -469,8 +469,8 @@ class ChatInterface(QMainWindow):
         
         menu_items = [
             {"label": "What's This?", "callback": self._menu_whats_this},
-            {"label": "Decompose", "callback": self._menu_decompose},
-            {"label": "Operationalize", "callback": self._menu_operationalize},
+            {"label": "Break down softgoal (Decompose)", "callback": self._menu_decompose},
+            {"label": "How to achieve? (Operationalize)", "callback": self._menu_operationalize},
             {"label": "Side Effects", "callback": self._menu_side_effects},
             {"label": "Claims", "callback": self._menu_claims},
             {"label": "Domain Knowledge", "callback": self._menu_domain_knowledge},
@@ -758,7 +758,7 @@ class ChatInterface(QMainWindow):
                 # Step 2: Get entity
                 entity = getEntity(matched_name)
                 if not entity:
-                    error_msg = f"❌ Could not find entity: {text}\n\nTry: Softgoal, Performance, Security, Indexing, etc."
+                    error_msg = f"Could not find entity: {text}\n\nTry: Softgoal, Performance, Security, Indexing, etc."
                     self.update_thinking_signal.emit(thinking_msg, error_msg)
                     return
 
@@ -847,8 +847,19 @@ class ChatInterface(QMainWindow):
                 decomps = getDecompositionsFor(entity)
                 
                 if not decomps:
-                    response = f"{format_entity_name(matched_name)} has no decomposition methods defined."
-                    self.update_thinking_signal.emit(thinking_msg, response)
+                    llm_response = menu_llm.respond(
+                    action_type="decompose",
+                    user_input=format_entity_name(matched_name),
+                    metamodel_context="none"
+                    )
+                    full_response = llm_response
+                    formatted_name = format_entity_name(matched_name)
+                    buttons = [
+                    {"label": f"How to achieve {formatted_name}?", "action": "operationalize", "data": {"entity": matched_name}},
+                ]
+                
+                # Update UI
+                    self.update_ui_signal.emit(thinking_msg, full_response, buttons)
                     return
                 
                 # Build context
@@ -985,9 +996,17 @@ class ChatInterface(QMainWindow):
                                 found_ops.append(source)  # Fallback to raw name
                 
                 if not contributions:
-                    response = f"No operationalizations found for '{formatted_name}'.\n\n"
-                    response += "Try: Indexing→Performance, Encryption→Security, etc."
-                    self.update_thinking_signal.emit(thinking_msg, response)
+                    llm_response = menu_llm.respond(
+                    action_type="show_operationalizations",
+                    user_input=formatted_name,
+                    metamodel_context="none"
+                )
+                    full_response = llm_response
+                    formatted_name = format_entity_name(matched_name)
+                    buttons = []
+                
+                # Update UI
+                    self.update_ui_signal.emit(thinking_msg, full_response, buttons)
                     return
                 
                 # Build context for LLM
@@ -1040,13 +1059,6 @@ class ChatInterface(QMainWindow):
                     })
                     print(f"   Button {i} added: {buttons[-1]}")
                 
-                
-                # Add claims/justifications button
-                buttons.append({
-                    "label": "View Claims/Justifications",
-                    "action": "claims",
-                    "data": {"entity": matched_name}
-                })
                 # Update UI
                 self.update_ui_signal.emit(thinking_msg, full_response, buttons)
                 
@@ -1537,7 +1549,7 @@ class ChatInterface(QMainWindow):
             {"label": "Claim Softgoals", "action": "browse_category", "data": {"category": "Claim Softgoals"}},
             {"label": "Decomposition Methods", "action": "browse_category", "data": {"category": "Decomposition Methods"}},
             {"label": "Contribution Links", "action": "browse_category", "data": {"category": "Contribution Links"}},
-            {"label": "Correlation Links", "action": "browse_category", "data": {"category": "Correlation Links"}},
+            #{"label": "Correlation Links", "action": "browse_category", "data": {"category": "Correlation Links"}},
         ]
         
         self._add_message("assistant", message, buttons)
@@ -1651,34 +1663,6 @@ class ChatInterface(QMainWindow):
                     for name, obj in inspect.getmembers(metamodel):
                         if hasattr(metamodel, 'ClaimSoftgoal'):
                             if isinstance(obj, metamodel.ClaimSoftgoal):
-                                examples.append((obj.argument, obj.supports, [], []))
-                
-                elif category == "Decomposition Methods":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'NFRDecompositionMethod'):
-                            if isinstance(obj, metamodel.NFRDecompositionMethod):
-                                examples.append((name, obj, [], []))
-                        elif hasattr(metamodel, 'OperationalizationDecompositionMethod'):
-                            if isinstance(obj, metamodel.OperationalizationDecompositionMethod):
-                                examples.append((name, obj, [], []))
-                
-                elif category == "Contribution Links":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'Contribution'):
-                            if isinstance(obj, metamodel.Contribution):
-                                info = f"{obj.source} → {obj.target} ({obj.type.value})"
-                                examples.append((name, obj, [(info, "")], []))
-                
-                elif category == "Correlation Links":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'Correlation'):
-                            if isinstance(obj, metamodel.Correlation):
-                                examples.append((name, obj, [], []))
-                
-                elif category == "Claim Softgoals":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'ClaimSoftgoal'):
-                            if isinstance(obj, metamodel.ClaimSoftgoal):
                                 examples.append((name, obj, [], []))
                 
                 elif category == "Decomposition Methods":
@@ -1696,12 +1680,9 @@ class ChatInterface(QMainWindow):
                             if isinstance(obj, metamodel.Contribution):
                                 info = f"{obj.source} → {obj.target} ({obj.type.value})"
                                 examples.append((name, obj, [(info, "")], []))
+            
                 
-                elif category == "Correlation Links":
-                    for name, obj in inspect.getmembers(metamodel):
-                        if hasattr(metamodel, 'Correlation'):
-                            if isinstance(obj, metamodel.Correlation):
-                                examples.append((name, obj, [], []))
+                
                                 '''
                 elif category == "Functional Requirement Types":
                     for name, obj in inspect.getmembers(metamodel):
@@ -1755,7 +1736,7 @@ class ChatInterface(QMainWindow):
                             "action": "browse_item",
                             "data": {"entity": name, "category": category},
                         })
-
+    
                     self.update_ui_signal.emit(thinking_msg, response, buttons)
                 else:
                     response = f"ℹ️ No items found for {category}"
@@ -1772,6 +1753,11 @@ class ChatInterface(QMainWindow):
 
     def _process_browse_item(self, entity_name: str):
         """Show detailed info and metamodel instances for a browse item."""
+        """if category == "Claim Softgoals":
+                            display += f"{display_name}: {obj}\n"
+                        else: 
+                            display += f"{display_name}\n"
+                            """
         display = format_entity_name(entity_name) if 'Type' in entity_name else entity_name
         thinking_msg = self._add_message("assistant", f"Loading details for {display}...")
 
@@ -1785,6 +1771,8 @@ class ChatInterface(QMainWindow):
                         thinking_msg, f"Could not find {entity_name} in metamodel."
                     )
                     return
+                
+
 
                 response = f"{display}\n\n"
 
@@ -1793,7 +1781,7 @@ class ChatInterface(QMainWindow):
                     for base_name, label in [
                         ('NFRSoftgoalType', 'NFR (Non-Functional Requirement)'),
                         ('OperationalizingSoftgoalType', 'Operationalizing Softgoal'),
-                        ('FunctionalRequirementType', 'Functional Requirement'),
+                        
                     ]:
                         base = getattr(metamodel, base_name, None)
                         if base and issubclass(entity, base):
@@ -1830,7 +1818,7 @@ class ChatInterface(QMainWindow):
                             for cls in search_classes:
                                 try:
                                     if isinstance(inst_obj, cls):
-                                        instances.append(inst_name)
+                                        instances.append(inst_obj.statement)
                                         break
                                 except Exception:
                                     pass
@@ -1854,7 +1842,7 @@ class ChatInterface(QMainWindow):
 
                     # --- Claims ---
                     try:
-                        claims = getClaimsFor(entity)
+                        claims = getClaimsFor(decomps)
                         if claims:
                             response += f"Claims ({len(claims)}):\n"
                             for c in claims:
@@ -1862,19 +1850,33 @@ class ChatInterface(QMainWindow):
                             response += "\n"
                     except Exception:
                         pass
+                    # Follow-up buttons
+                    buttons = [
+                        {"label": f"What is {display}?", "action": "whats_this", "data": {"entity": entity_name}},
+                        {"label": f"Decompose {display}", "action": "decompose", "data": {"entity": entity_name}},
+                        {"label": f"How to achieve {display}?", "action": "operationalize", "data": {"entity": entity_name}},
+                        {"label": f"Side effects of {display}", "action": "side_effects", "data": {"entity": entity_name}},
+                    ]
+
+                    self.update_ui_signal.emit(thinking_msg, response, buttons)
                 else:
                     # Non-class entity (instance / link)
-                    response += f"Value: {entity}\n\n"
-
-                # Follow-up buttons
-                buttons = [
-                    {"label": f"What is {display}?", "action": "whats_this", "data": {"entity": entity_name}},
-                    {"label": f"Decompose {display}", "action": "decompose", "data": {"entity": entity_name}},
-                    {"label": f"How to achieve {display}?", "action": "operationalize", "data": {"entity": entity_name}},
-                    {"label": f"Side effects of {display}", "action": "side_effects", "data": {"entity": entity_name}},
-                ]
-
-                self.update_ui_signal.emit(thinking_msg, response, buttons)
+                    
+                    
+                    if isinstance(entity, metamodel.Contribution):
+                        info = f"{entity.source} → {entity.target} ({entity.type.value})"
+                        response += f"Contribution: {info}\n\n"
+                
+                    if isinstance(entity, metamodel.ClaimSoftgoal):
+                        response += f"Claim: {entity.argument} \n Support: {entity.supports}"
+                
+                    if isinstance(entity, metamodel.NFRDecompositionMethod):
+                        offsprings=""
+                        for offspring in entity.offspring:
+                            offsprings += f"{format_entity_name(getEntityName(offspring))}\n"
+                        response += f"Parent: {format_entity_name(getEntityName(entity.parent))} \n Offspring:\n {offsprings}"
+                    no_button=[]
+                    self.update_ui_signal.emit(thinking_msg, response,no_button)
 
             except Exception as e:
                 import traceback
